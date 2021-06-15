@@ -6,7 +6,9 @@ import './MoviesPage.css';
 export default class MoviesPage extends Component {
     state = {
         movies: getMovies(),
-        currSearchText: ""
+        currSearchText: "",
+        pageNumber: 1,
+        limit: 4
     }
 
     deleteMovie(id){
@@ -18,7 +20,6 @@ export default class MoviesPage extends Component {
 
     handleChange = (e) => {
         let value = e.target.value;
-
         this.setState({
             currSearchText: value
         })
@@ -56,11 +57,37 @@ export default class MoviesPage extends Component {
         })
     }
 
-    render() {
-        const {movies, currSearchText} = this.state;
-        const filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(currSearchText.toLowerCase()));
+    handlePageChange = (pageNumber) => {
+        this.setState({
+            pageNumber: pageNumber
+        })
+    }
 
-        console.log(filteredMovies)
+    handleLimit = (e) => {
+        let limit = Number(e.target.value);
+
+        if(limit < 1){
+            return;
+        }
+
+        this.setState({
+            limit: limit
+        })
+    }
+
+    render() {
+        const {movies, currSearchText, pageNumber, limit} = this.state;
+        let filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(currSearchText.toLowerCase()));
+
+        let numberOfPages = Math.ceil(filteredMovies.length / limit);
+        let pageNumberArr = [];
+        for(let i=0; i<numberOfPages; i++){
+            pageNumberArr.push(i+1);
+        }
+
+        let si = (pageNumber-1)*limit;
+        let ei = si+limit;
+        filteredMovies = filteredMovies.slice(si, ei);
 
         return (
             <div className="row top-container px-2">
@@ -73,10 +100,15 @@ export default class MoviesPage extends Component {
                     </ul>
                 </div>
                 <div className="col-9 movies_list-container">
-                    <div className="input-container">
-                        <input type="search" value={currSearchText} onChange={this.handleChange}/>
+                    <div className="row my-3 p-2">
+                        <div class="col-6">
+                            <input type="search" class="form-control" placeholder="Search movies" aria-label="search" value={currSearchText} onChange={this.handleChange} />
+                        </div>
+                        <div class="col-3">
+                            <input type="number" class="form-control" placeholder="Limit" aria-label="limit" value={limit} onChange={this.handleLimit}/>
+                        </div>
                     </div>
-                    <div className="movies_list">
+                    <div className="row movies_list ms-2">
                         <table className="table">
                             <thead>
                                 <tr>
@@ -112,6 +144,22 @@ export default class MoviesPage extends Component {
                             </tbody>
                         </table>
                     </div>
+                    <div className="row ms-1">
+                        <nav aria-label="...">
+                            <ul className="pagination">
+                                {
+                                    pageNumberArr.map(page => {
+                                        let additional = page === pageNumber ? "page-item active" : "page-item"
+                                        return (
+                                            <li className={additional} aria-current="page" onClick={() => this.handlePageChange(page)}>
+                                                <span className="page-link">{page}</span>
+                                            </li>
+                                        )
+                                    })
+                                }
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
         )
@@ -119,7 +167,7 @@ export default class MoviesPage extends Component {
 }
 
 
-// do not change state while filtering on the basic of currSearchText
+// do not change state while filtering on the basis of currSearchText
 // can change state while deleting
 
 // sort by default sort in alphabetical order

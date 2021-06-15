@@ -14,12 +14,7 @@
     flex-direction: column;
 }
 
-.input-container{
-    height: 20%;
-    width: 100%;
-}
-
 .movies_list{
-    height: 80%;
+    height: 70%;
     width: 100%;
 }
