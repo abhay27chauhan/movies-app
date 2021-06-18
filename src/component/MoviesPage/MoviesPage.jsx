@@ -1,17 +1,22 @@
-import React, { Component } from 'react'
-import { getMovies } from '../../temp/MovieService'
-
-import './MoviesPage.css';
+import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
+import Pagination from '../Pagination/Pagination';
+import Search from '../Search/Search';
+import Table from '../Table/Table';
+import Genre from '../Genre/Genre'
 
 export default class MoviesPage extends Component {
+    isComponentMounted = false;
+
     state = {
-        movies: getMovies(),
+        movies: [],
         currSearchText: "",
         pageNumber: 1,
-        limit: 4
+        limit: 4,
+        cGenre: "All Genres"
     }
 
-    deleteMovie(id){
+    deleteMovie = (id) => {
         let filteredMovies = this.state.movies.filter(movie => (movie._id !== id));
         this.setState({
             movies: filteredMovies
@@ -21,7 +26,8 @@ export default class MoviesPage extends Component {
     handleChange = (e) => {
         let value = e.target.value;
         this.setState({
-            currSearchText: value
+            currSearchText: value,
+            pageNumber: 1
         })
     }
 
@@ -75,9 +81,36 @@ export default class MoviesPage extends Component {
         })
     }
 
+    handleGenreChange = (genre) => {
+        this.setState({
+            cGenre: genre,
+            pageNumber: 1
+        })
+    }
+
+    async componentDidMount() {
+        this.isComponentMounted = true;
+        let resp = await fetch("https://react-backend101.herokuapp.com/movies");
+        let moviesData = await resp.json()
+
+        if(this.isComponentMounted){
+            this.setState({
+                movies: moviesData.movies
+            })
+        }
+    }
+
+    componentWillUnmount(){
+        this.isComponentMounted = false;
+    }
+
     render() {
-        const {movies, currSearchText, pageNumber, limit} = this.state;
+        const {movies, genres, currSearchText, pageNumber, limit, cGenre} = this.state;
         let filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(currSearchText.toLowerCase()));
+
+        if(cGenre !== "All Genres"){
+            filteredMovies = filteredMovies.filter(movie => movie.genre.name === cGenre);
+        }
 
         let numberOfPages = Math.ceil(filteredMovies.length / limit);
         let pageNumberArr = [];
@@ -90,76 +123,21 @@ export default class MoviesPage extends Component {
         filteredMovies = filteredMovies.slice(si, ei);
 
         return (
-            <div className="row top-container px-2">
-                <div className="col-3 genre-container pt-4">
-                    <ul className="list-group">
-                        <li className="list-group-item">An item</li>
-                        <li className="list-group-item">A second item</li>
-                        <li className="list-group-item">A third item</li>
-                        <li className="list-group-item">A fourth item</li>
-                    </ul>
+            <div className="row m-0 px-2">
+                <div className="col-3 pt-4">
+                    <Genre genres={genres} cGenre={cGenre} handleGenreChange={this.handleGenreChange} />
                 </div>
-                <div className="col-9 movies_list-container">
-                    <div className="row my-3 p-2">
-                        <div class="col-6">
-                            <input type="search" class="form-control" placeholder="Search movies" aria-label="search" value={currSearchText} onChange={this.handleChange} />
-                        </div>
-                        <div class="col-3">
-                            <input type="number" class="form-control" placeholder="Limit" aria-label="limit" value={limit} onChange={this.handleLimit}/>
-                        </div>
-                    </div>
-                    <div className="row movies_list ms-2">
-                        <table className="table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Title</th>
-                                    <th scope="col">Genre</th>
-                                    <th scope="col">
-                                        <i className="fas fa-sort-up" onClick={this.sortByStocks}></i>
-                                        Stock
-                                        <i className="fas fa-sort-down" onClick={this.sortByStocks}></i>
-                                    </th>
-                                    <th scope="col" onClick={this.sortByRatings}>
-                                        <i className="fas fa-sort-up" onClick={this.sortByRatings}></i>
-                                        Rate
-                                        <i className="fas fa-sort-down" onClick={this.sortByRatings}></i>
-                                    </th>
-                                    <th />
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {
-                                    filteredMovies.map(movie => (
-                                        <tr key={movie._id}>
-                                            <td className="col-4">{movie.title}</td>
-                                            <td>{movie.genre.name}</td>
-                                            <td>{movie.numberInStock}</td>
-                                            <td className="col-2">{movie.dailyRentalRate}</td>
-                                            <td>
-                                                <button type="button" className="btn btn-danger" onClick={() => (this.deleteMovie(movie._id))}>Delete</button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="row ms-1">
-                        <nav aria-label="...">
-                            <ul className="pagination">
-                                {
-                                    pageNumberArr.map(page => {
-                                        let additional = page === pageNumber ? "page-item active" : "page-item"
-                                        return (
-                                            <li className={additional} aria-current="page" onClick={() => this.handlePageChange(page)}>
-                                                <span className="page-link">{page}</span>
-                                            </li>
-                                        )
-                                    })
-                                }
-                            </ul>
-                        </nav>
-                    </div>
+                <div className="col-9">
+                    <button
+                        className="btn btn-primary btn-lg my-3 ms-4"
+                    >
+                        <Link to="/new" className="text-light" > Add New Movie </Link>
+                    </button>
+                    <Search currSearchText={currSearchText} handleChange={this.handleChange} limit={limit} handleLimit={this.handleLimit}/>
+
+                    <Table filteredMovies={filteredMovies} deleteMovie={this.deleteMovie} sortByRatings={this.sortByRatings} sortByStocks={this.sortByStocks}/>
+                    
+                    <Pagination pageNumber={pageNumber} pageNumberArr={pageNumberArr} handlePageChange={this.handlePageChange}/>
                 </div>
             </div>
         )
