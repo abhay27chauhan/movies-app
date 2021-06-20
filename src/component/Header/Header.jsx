@@ -20,10 +20,7 @@ export default class Header extends Component {
                     <div className="collapse navbar-collapse" id="navmenu">
                     <ul className="navbar-nav ms-auto">
                         <li className="nav-item">
-                        <a href="#learn" className="nav-link">What You'll Learn</a>
-                        </li>
-                        <li className="nav-item">
-                        <a href="#questions" className="nav-link">Login</a>
+                            <Link to="/login" className="nav-link">Login</Link>
                         </li>
                     </ul>
                     </div>

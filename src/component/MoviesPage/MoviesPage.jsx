@@ -6,21 +6,11 @@ import Table from '../Table/Table';
 import Genre from '../Genre/Genre'
 
 export default class MoviesPage extends Component {
-    isComponentMounted = false;
-
     state = {
-        movies: [],
         currSearchText: "",
         pageNumber: 1,
         limit: 4,
         cGenre: "All Genres"
-    }
-
-    deleteMovie = (id) => {
-        let filteredMovies = this.state.movies.filter(movie => (movie._id !== id));
-        this.setState({
-            movies: filteredMovies
-        })
     }
 
     handleChange = (e) => {
@@ -34,7 +24,7 @@ export default class MoviesPage extends Component {
     sortByStocks = (e) => {
         let className = e.target.className;
         let sortedArr = [];
-        let { movies } = this.state;
+        let { movies } = this.props;
 
         if(className === "fas fa-sort-up"){
             sortedArr = movies.sort((a, b) => a.numberInStock - b.numberInStock)
@@ -42,15 +32,13 @@ export default class MoviesPage extends Component {
             sortedArr = movies.sort((a, b) => b.numberInStock - a.numberInStock)
         }
 
-        this.setState({
-            movies: sortedArr
-        })
+        this.props.setMovies(sortedArr)
     }
 
     sortByRatings = (e) => {
         let className = e.target.className;
         let sortedArr = [];
-        let { movies } = this.state;
+        let { movies } = this.props;
 
         if(className === "fas fa-sort-up"){
             sortedArr = movies.sort((a, b) => a.dailyRentalRate - b.dailyRentalRate)
@@ -58,9 +46,7 @@ export default class MoviesPage extends Component {
             sortedArr = movies.sort((a, b) => b.dailyRentalRate - a.dailyRentalRate)
         }
 
-        this.setState({
-            movies: sortedArr
-        })
+        this.props.setMovies(sortedArr)
     }
 
     handlePageChange = (pageNumber) => {
@@ -88,24 +74,9 @@ export default class MoviesPage extends Component {
         })
     }
 
-    async componentDidMount() {
-        this.isComponentMounted = true;
-        let resp = await fetch("https://react-backend101.herokuapp.com/movies");
-        let moviesData = await resp.json()
-
-        if(this.isComponentMounted){
-            this.setState({
-                movies: moviesData.movies
-            })
-        }
-    }
-
-    componentWillUnmount(){
-        this.isComponentMounted = false;
-    }
-
     render() {
-        const {movies, genres, currSearchText, pageNumber, limit, cGenre} = this.state;
+        const {genres, currSearchText, pageNumber, limit, cGenre} = this.state;
+        const {movies, deleteMovie} = this.props
         let filteredMovies = movies.filter(movie => movie.title.toLowerCase().includes(currSearchText.toLowerCase()));
 
         if(cGenre !== "All Genres"){
@@ -135,7 +106,7 @@ export default class MoviesPage extends Component {
                     </button>
                     <Search currSearchText={currSearchText} handleChange={this.handleChange} limit={limit} handleLimit={this.handleLimit}/>
 
-                    <Table filteredMovies={filteredMovies} deleteMovie={this.deleteMovie} sortByRatings={this.sortByRatings} sortByStocks={this.sortByStocks}/>
+                    <Table filteredMovies={filteredMovies} deleteMovie={deleteMovie} sortByRatings={this.sortByRatings} sortByStocks={this.sortByStocks}/>
                     
                     <Pagination pageNumber={pageNumber} pageNumberArr={pageNumberArr} handlePageChange={this.handlePageChange}/>
                 </div>
