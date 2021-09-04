@@ -4,6 +4,7 @@ import { Switch, Route } from 'react-router-dom'
 import MoviesPage from './component/MoviesPage/MoviesPage';
 import AddMoviePage from './component/AddMoviePage/AddMoviePage'
 import Header from './component/Header/Header'
+import { Redirect } from 'react-router-dom/cjs/react-router-dom.min';
 
 export default class App extends Component {
   state = {
@@ -66,7 +67,7 @@ export default class App extends Component {
           <Route path="/new" render={props => (
             <AddMoviePage {...props} addMovie={this.addMovie}/>
           )} />
-          <Route exact path="/" render={props => (
+          <Route exact path="/movies-app" render={props => (
             <MoviesPage {...props} movies={this.state.movies} deleteMovie={this.deleteMovie} setMovies={this.setMovies}/>
           )} />
         </Switch>
